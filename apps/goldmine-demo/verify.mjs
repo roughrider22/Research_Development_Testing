@@ -1,0 +1,35 @@
+import { chromium } from 'playwright';
+const file = 'file://' + process.cwd() + '/dist/index.html';
+const browser = await chromium.launch();
+const results = [];
+for (const [name, vp, mobile] of [['laptop', { width: 1280, height: 800 }, false], ['phone', { width: 390, height: 844 }, true]]) {
+  const ctx = await browser.newContext({ viewport: vp, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: mobile ? 2 : 1 });
+  const page = await ctx.newPage();
+  const net = []; const errs = [];
+  page.on('request', (r) => { if (!r.url().startsWith('file:') && !r.url().startsWith('data:')) net.push(r.url()); });
+  page.on('pageerror', (e) => errs.push(String(e))); page.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
+  page.on('dialog', (d) => d.accept());
+  const shot = async (n) => page.screenshot({ path: `screens/${name}-${n}.png`, fullPage: false });
+  const tap = async (sel) => { const l = page.locator(sel).first(); await l.scrollIntoViewIfNeeded(); mobile ? await l.tap() : await l.click(); };
+  await page.goto(file); await shot('0-inbox');
+  await tap('[data-testid=sim-lead]'); await page.waitForTimeout(2000);
+  await tap('[data-testid=lead-Jordan]'); await page.waitForSelector('text=Instant reply'); await shot('1-lead-instant-reply');
+  await tap('[data-testid=book]'); await shot('2-slots'); await tap('[data-testid=slot]');
+  await page.waitForSelector('[data-testid=assessed]'); await shot('2b-booked');
+  await tap('[data-testid=assessed]'); await tap('[data-testid=go-follow]');
+  await page.selectOption('[data-testid=follow-Jordan] [data-testid=pkg]', 'pv60-10');
+  await tap('[data-testid=follow-Jordan] [data-testid=run-seq]'); await shot('3-follow-up');
+  await tap('[data-testid=follow-Jordan] [data-testid=sold]'); await page.waitForTimeout(300);
+  await tap('[data-testid=tab-renew]'); await tap('[data-testid=renew-Jordan] [data-testid=ff]');
+  await tap('[data-testid=renew-Jordan] [data-testid=remind]'); await page.waitForSelector('[data-testid=renew-Jordan] >> text=reminder sent'); await shot('4-renewal');
+  await tap('[data-testid=tab-dash]'); await shot('5-dashboard');
+  const guide = await page.locator('[data-testid=guide] li.cur').innerText();
+  const sold = await page.locator('.src-table tbody tr').first().innerText();
+  const overflow = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, window.innerWidth) > screen.width);
+  await tap('[data-testid=reset]'); await page.waitForTimeout(300);
+  const jordanAfter = await page.locator('[data-testid=lead-Jordan]').count();
+  results.push({ name, net, errs, guide, webRow: sold.replace(/\s+/g, ' '), horizontalOverflow: overflow, jordanAfterReset: jordanAfter });
+  await ctx.close();
+}
+await browser.close();
+console.log(JSON.stringify(results, null, 1));

@@ -1,0 +1,127 @@
+{
+ "E1": {
+  "resetDuringReplyDelay_jordan": 0,
+  "renewWhileBooked_jordanCard": 0,
+  "followWhileBooked_text": true,
+  "dashBooked": "🌐 Web form 5 4 3 60% $1,375",
+  "guide": "3\nFollow-up → package sold",
+  "afterReset_jordan": 0,
+  "afterReset_guide": "1\nNew lead arrives",
+  "soldEarly_renewCard": 1,
+  "net": 0,
+  "errs": []
+ },
+ "E3": {
+  "leadThread": "3/3 outbound tagged simulated",
+  "composePlaceholder": "Type a reply (simulated, nothing is sent)",
+  "footer": "Demo only · fictional people · nothing is sent, all messages are simulated · Mindbody shown as a mock · AI assistant and AI agents are simulated (scripted, no AI model) · prices from goldmineperformance.com/prices",
+  "pill": "DEMO · sample data",
+  "errs": []
+ },
+ "E4": {
+  "kpi": "2h Avg first reply Sample history 2h · auto-reply <1m",
+  "overflow": false
+ },
+ "E5": {
+  "options": [
+   "Private 30-Minute · 1 Session — $45",
+   "Private 30-Minute · 5 Sessions — $200",
+   "Private 30-Minute · 10 Sessions — $350",
+   "Private 60-Minute · 1 Session — $90",
+   "Private 60-Minute · 5 Sessions — $375",
+   "Private 60-Minute · 10 Sessions — $700",
+   "Private 90-Minute · 1 Session — $100",
+   "Private 90-Minute · 5 Sessions — $475",
+   "Private 90-Minute · 10 Sessions — $900",
+   "Private 120-Minute · 1 Session — $145",
+   "Private 120-Minute · 5 Sessions — $700",
+   "Private 120-Minute · 10 Sessions — $1,350",
+   "Semi-Private 60-Minute · 1 Session (2 athletes) — $60 pp",
+   "Semi-Private 60-Minute · 5 Sessions (2 athletes) — $275 pp",
+   "Semi-Private 60-Minute · 10 Sessions (2 athletes) — $500 pp"
+  ],
+  "emptyOrNaN": 0,
+  "assessmentPriceShown": null
+ },
+ "E6": {
+  "detailOpenAfterDouble": 1,
+  "jordanLeads": 1,
+  "instantReplies": 1,
+  "confirmations": 1,
+  "thankYous": 1,
+  "dbgFollow": "Assessment → package\n\nAfter every assessment a 4-step sequence runs automatically. Staff can step in or mark the sale at any point.\n\nMarcus Bell\n\nAdult · general strength · Assessment booked\n\nAssessment booked for Tue, Nov 3, 6:00 PM. Sequence starts when it’s marked done.\n\nLauren Ochoa\n\nSofia (15) · soccer · Assessed\n\nRecommended package\nPrivate 30-Minute · 1 Session — $45\nPrivate 30-Minute · 5 Sessions — $200\nPrivate 30-Minute · 10 Sessions — $350\nPrivate 60-Minute · 1 Session — $90\nPrivate 60-Minute · 5 Sessions — $375\nPrivate 60-Minute · 10 Sessions — $700\nPrivate 90-Minute · 1 Session — $",
+  "jordanRenewCards": 1,
+  "jordanRenewCardsAfterRenew": 1,
+  "jordanSales": 2,
+  "outMsgsByLabel": {
+   "Instant reply · 38 sec": 1,
+   "Booking confirmation": 1,
+   "Follow-up 1/4 · auto": 1,
+   "Follow-up 2/4 · Day 1": 1,
+   "Follow-up 3/4 · Day 2": 1,
+   "Follow-up 4/4 · Day 5": 1,
+   "Welcome · auto": 1,
+   "Renewal reminder": 1
+  },
+  "webRow": "🌐 Web form 5 4 4 80% $2,775",
+  "kpis": "11 Leads 7 Assessments booked 83% Assessment → package $3,275 Package revenue 2h Avg first reply Sample history 2h · auto-reply <1m",
+  "errs": []
+ },
+ "E7": {
+  "offline": {
+   "overflowLead": false,
+   "overflowDash": false,
+   "net": 0,
+   "errs": []
+  },
+  "dark": {
+   "overflowLead": false,
+   "overflowDash": false,
+   "net": 0,
+   "errs": []
+  },
+  "landscape": {
+   "overflowLead": false,
+   "overflowDash": false,
+   "net": 0,
+   "errs": []
+  },
+  "small-android": {
+   "overflowLead": false,
+   "overflowDash": false,
+   "net": 0,
+   "errs": []
+  },
+  "bigfont": {
+   "overflowLead": false,
+   "overflowDash": false,
+   "net": 0,
+   "errs": []
+  }
+ },
+ "E8": {
+  "reloadDuringDelay_instantReply": 1,
+  "afterReload_stage": "Assessment booked",
+  "afterReload_guide": "3\nFollow-up → package sold",
+  "newTabSameState": "Assessment booked",
+  "errs": []
+ },
+ "E10": {
+  "instantReplyAfterSleep": 1,
+  "ago": "8h ago",
+  "errs": []
+ },
+ "E9": {
+  "natural": "220x220",
+  "shown": "40x40",
+  "dpr3Needs": 120,
+  "mindbodyMentions": [
+   "Mindbody shown as a mock · A",
+   "Mindbody (mock)\"})]}),c.jsx(",
+   "Mindbody mock\"})]}),c.jsx(\"b",
+   "Mindbody mock)`))},children:",
+   "Mindbody mock)`))},children:",
+   "Mindbody shown as a mock · A"
+  ]
+ }
+}

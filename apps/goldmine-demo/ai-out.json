@@ -1,0 +1,156 @@
+{
+ "flow-laptop": {
+  "label": "AI assistant, simulated: scripted replies, no AI model, nothing leaves this device",
+  "prices": true,
+  "hours": "Good question! I don't want to give you the wrong hours, so I'd rather have the team confirm them for you. Want me to ask a coach to reach out? In the meantime I can show you open assessment times.\n\nYes, have staff confirm\nShow open times",
+  "hoursInvented": false,
+  "training": true,
+  "fallback": true,
+  "booked": "You're all set for Tue, Nov 3, 9:00 AM! 🎉 I just texted you a confirmation (simulated), and the coaches can see it in their inbox. Anything else?\n\nWhat should we bring?\nTalk to a coach",
+  "overflowChat": false,
+  "caseyLeads": [
+   "booked/web"
+  ],
+  "caseyBookings": 1,
+  "inboxHasCasey": 1,
+  "caseyThread": true,
+  "pendingKinds": [
+   "agent-reengage",
+   "agent-recommend",
+   "agent-noshow",
+   "agent-summary"
+  ],
+  "feed": [
+   "Saved to owner notes (not sent) · just now · simulated",
+   "Rebooked Tue, Nov 3, 4:00 PM · text sent (simulated) · just now · simulated",
+   "Recommendation sent (simulated) · just now · simulated",
+   "Text sent (simulated) · edited by staff · just now · simulated"
+  ],
+  "overflowAgents": false,
+  "priyaEdited": true,
+  "laurenOffer": 1,
+  "grant": {
+   "booking": [
+    "booked"
+   ],
+   "stage": "booked",
+   "msgs": 1
+  },
+  "afterReset": {
+   "casey": false,
+   "agent": 0,
+   "chatMsgs": 1,
+   "pendingTab": "4"
+  },
+  "net": 0,
+  "errs": []
+ },
+ "flow-phone": {
+  "label": "AI assistant, simulated: scripted replies, no AI model, nothing leaves this device",
+  "prices": true,
+  "hours": "Good question! I don't want to give you the wrong hours, so I'd rather have the team confirm them for you. Want me to ask a coach to reach out? In the meantime I can show you open assessment times.\n\nYes, have staff confirm\nShow open times",
+  "hoursInvented": false,
+  "training": true,
+  "fallback": true,
+  "booked": "You're all set for Tue, Nov 3, 9:00 AM! 🎉 I just texted you a confirmation (simulated), and the coaches can see it in their inbox. Anything else?\n\nWhat should we bring?\nTalk to a coach",
+  "overflowChat": false,
+  "caseyLeads": [
+   "booked/web"
+  ],
+  "caseyBookings": 1,
+  "inboxHasCasey": 1,
+  "caseyThread": true,
+  "pendingKinds": [
+   "agent-reengage",
+   "agent-recommend",
+   "agent-noshow",
+   "agent-summary"
+  ],
+  "feed": [
+   "Saved to owner notes (not sent) · just now · simulated",
+   "Rebooked Tue, Nov 3, 4:00 PM · text sent (simulated) · just now · simulated",
+   "Recommendation sent (simulated) · just now · simulated",
+   "Text sent (simulated) · edited by staff · just now · simulated"
+  ],
+  "overflowAgents": false,
+  "priyaEdited": true,
+  "laurenOffer": 1,
+  "grant": {
+   "booking": [
+    "booked"
+   ],
+   "stage": "booked",
+   "msgs": 1
+  },
+  "afterReset": {
+   "casey": false,
+   "agent": 0,
+   "chatMsgs": 1,
+   "pendingTab": "4"
+  },
+  "net": 0,
+  "errs": []
+ },
+ "E1": {
+  "typingVisible": 1,
+  "resetMidTyping": {
+   "msgs": 1,
+   "queue": 0
+  },
+  "chipsBack": 4,
+  "resetMidAction": {
+   "agent": 0,
+   "grant": "noshow",
+   "grantMsgs": 0
+  },
+  "offScriptMidBooking": true,
+  "staleChipButtons": 0,
+  "emptySendNoMsg": 6,
+  "net": 0,
+  "errs": []
+ },
+ "E6": {
+  "caseyPeople": 1,
+  "caseyBookings": 1,
+  "confirmations": 1,
+  "handoffs": 1,
+  "userMsgs": 4,
+  "agentEntries": [
+   "reengage:approved",
+   "recommend:approved",
+   "noshow:approved",
+   "summary:approved"
+  ],
+  "agentMsgs": {
+   "AI agent · re-engage · staff-approved": 1,
+   "AI agent · package recommendation · staff-approved": 1,
+   "AI agent · rescheduled · staff-approved": 1
+  },
+  "grantBookings": [
+   "booked"
+  ],
+  "net": 0,
+  "errs": []
+ },
+ "E8": {
+  "reloadMidTyping": {
+   "msgs": 4,
+   "queue": 0,
+   "pricesDelivered": true
+  },
+  "reloadMidAction": {
+   "entry": "approved",
+   "grant": "booked",
+   "msgs": 1
+  },
+  "chatPersists": 4,
+  "feedPersists": 1,
+  "afterReset": {
+   "msgs": 1,
+   "agent": 0,
+   "grant": "noshow"
+  },
+  "net": 0,
+  "errs": []
+ }
+}
