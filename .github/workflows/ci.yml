@@ -15,15 +15,27 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/goldmine-demo/package-lock.json
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
       - run: npm run build
       - run: npm audit --audit-level=high
+      - name: goldmine-demo install
+        run: npm ci --prefix apps/goldmine-demo
+      - name: goldmine-demo typecheck + build
+        run: npm run build --prefix apps/goldmine-demo
+      - name: goldmine-demo audit (runtime deps; dev-only vite advisory tracked)
+        run: npm audit --omit=dev --audit-level=high --prefix apps/goldmine-demo
   secret-scan:
     name: secret-scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4.2.2
         with:
