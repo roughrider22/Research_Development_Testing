@@ -11,7 +11,7 @@ export interface BookingService { openSlots(): number[]; book(personId: string, 
 export interface MindbodyAdapter { recordSale(personId: string, packageId: string): Sale; useSessions(saleId: string, n: number): void; activeSales(): Sale[] }
 
 const KEY = 'goldmine-demo-state-v2';
-const RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+const RETENTION_MS = 48 * 60 * 60 * 1000; // R9 Requirement: No Personal Data kept past 48 hours
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 export class MockBackend implements LeadRepository, PeopleRepository, PackageCatalog, MessagingService, BookingService, MindbodyAdapter {

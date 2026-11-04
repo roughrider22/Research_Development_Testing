@@ -16,22 +16,40 @@ describe("R9 Personal Data Retention", () => {
     } as unknown as Storage;
   });
 
-  it("should expire data after the retention period", () => {
+  it("should RETAIN data at 47 hours", () => {
     const defaultLeadsCount = seedState().leads.length;
     const backend = new MockBackend();
     
     // Add a lead
-    backend.create({ name: 'Test', athlete: 'self', sport: 'test', phone: '123', email: 'a@b.com' }, 'sms', 'hi');
+    backend.create({ name: 'Retention Test', athlete: 'self', sport: 'test', phone: '123', email: 'a@b.com' }, 'sms', 'hi');
     expect(backend.state.leads.length).toBe(defaultLeadsCount + 1);
     backend.commit();
 
-    // Verify it's in storage
-    expect(localStorage.setItem).toHaveBeenCalled();
-
-    // Mock time 31 days later
+    // Mock time 47 hours later
     vi.useFakeTimers();
     const now = Date.now();
-    vi.setSystemTime(now + 31 * 24 * 60 * 60 * 1000);
+    vi.setSystemTime(now + 47 * 60 * 60 * 1000);
+
+    const newBackend = new MockBackend();
+    // Should still have the added lead
+    expect(newBackend.state.leads.length).toBe(defaultLeadsCount + 1);
+    
+    vi.useRealTimers();
+  });
+
+  it("should EXPIRE data after 49 hours", () => {
+    const defaultLeadsCount = seedState().leads.length;
+    const backend = new MockBackend();
+    
+    // Add a lead
+    backend.create({ name: 'Expiry Test', athlete: 'self', sport: 'test', phone: '123', email: 'a@b.com' }, 'sms', 'hi');
+    expect(backend.state.leads.length).toBe(defaultLeadsCount + 1);
+    backend.commit();
+
+    // Mock time 49 hours later
+    vi.useFakeTimers();
+    const now = Date.now();
+    vi.setSystemTime(now + 49 * 60 * 60 * 1000);
 
     const newBackend = new MockBackend();
     // Should have reverted to seed state (default count)
