@@ -11,6 +11,7 @@ export interface BookingService { openSlots(): number[]; book(personId: string, 
 export interface MindbodyAdapter { recordSale(personId: string, packageId: string): Sale; useSessions(saleId: string, n: number): void; activeSales(): Sale[] }
 
 const KEY = 'goldmine-demo-state-v2';
+const RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 export class MockBackend implements LeadRepository, PeopleRepository, PackageCatalog, MessagingService, BookingService, MindbodyAdapter {
@@ -18,11 +19,27 @@ export class MockBackend implements LeadRepository, PeopleRepository, PackageCat
   private subs = new Set<() => void>();
   constructor() {
     let s: DemoState | null = null;
-    try { const raw = localStorage.getItem(KEY); if (raw) { const j = JSON.parse(raw); if (j && j.chat && j.agent) s = j; } } catch { /* file:// may block storage */ }
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        const envelope = JSON.parse(raw);
+        if (envelope && envelope.expiry && Date.now() < envelope.expiry) {
+          const j = envelope.value;
+          if (j && j.chat && j.agent) s = j;
+        }
+      }
+    } catch { /* file:// may block storage */ }
     this.state = s ?? seedState();
   }
   subscribe(f: () => void) { this.subs.add(f); return () => { this.subs.delete(f); }; }
-  commit() { this.state = { ...this.state }; try { localStorage.setItem(KEY, JSON.stringify(this.state)); } catch { /* ignore */ } this.subs.forEach((f) => f()); }
+  commit() {
+    this.state = { ...this.state };
+    try {
+      const envelope = { value: this.state, expiry: Date.now() + RETENTION_MS };
+      localStorage.setItem(KEY, JSON.stringify(envelope));
+    } catch { /* ignore */ }
+    this.subs.forEach((f) => f());
+  }
   reset() { this.state = seedState(); this.commit(); }
   // leads
   list() { return [...this.state.leads].sort((a, b) => b.createdAt - a.createdAt); }
