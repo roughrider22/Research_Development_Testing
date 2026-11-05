@@ -10,7 +10,7 @@ export interface BookingService { openSlots(): number[]; book(personId: string, 
 /** Mock today; later: Mindbody Public API (clients, sales, appointments). */
 export interface MindbodyAdapter { recordSale(personId: string, packageId: string): Sale; useSessions(saleId: string, n: number): void; activeSales(): Sale[] }
 
-const KEY = 'goldmine-demo-state-v2';
+export const KEY = 'goldmine-demo-state-v2';
 const RETENTION_MS = 48 * 60 * 60 * 1000; // R9 Requirement: No Personal Data kept past 48 hours
 const uid = () => Math.random().toString(36).slice(2, 9);
 
@@ -26,6 +26,8 @@ export class MockBackend implements LeadRepository, PeopleRepository, PackageCat
         if (envelope && envelope.expiry && Date.now() < envelope.expiry) {
           const j = envelope.value;
           if (j && j.chat && j.agent) s = j;
+        } else {
+          localStorage.removeItem(KEY);
         }
       }
     } catch { /* file:// may block storage */ }

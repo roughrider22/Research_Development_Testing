@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { MockBackend } from "../apps/goldmine-demo/src/services";
+import { MockBackend, KEY } from "../apps/goldmine-demo/src/services";
 import { seedState } from "../apps/goldmine-demo/src/data";
 
 describe("R9 Personal Data Retention", () => {
@@ -55,6 +55,23 @@ describe("R9 Personal Data Retention", () => {
     // Should have reverted to seed state (default count)
     expect(newBackend.state.leads.length).toBe(defaultLeadsCount);
     
+    vi.useRealTimers();
+  });
+
+  it("should REMOVE item from localStorage on expiry", () => {
+    const backend = new MockBackend();
+    backend.commit();
+    expect(localStorage.getItem(KEY)).not.toBeNull();
+
+    // Mock time 49 hours later
+    vi.useFakeTimers();
+    const now = Date.now();
+    vi.setSystemTime(now + 49 * 60 * 60 * 1000);
+
+    new MockBackend();
+    expect(localStorage.getItem(KEY)).toBeNull();
+    expect(localStorage.removeItem).toHaveBeenCalledWith(KEY);
+
     vi.useRealTimers();
   });
 });
