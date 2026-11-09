@@ -1,5 +1,5 @@
 // Fictional sample people only. Package names/prices from goldmineperformance.com/prices (read 2026-11-02).
-import type { DemoState, Package, Person, Lead, Message, Booking, Sale, Channel, Stage } from './types';
+import type { DemoState, Package, Person, Lead, Message, Booking, Sale, Channel, Stage } from './types.js';
 
 const priv = (min: number, rows: [number, number][]): Package[] =>
   rows.map(([n, price]) => ({ id: `pv${min}-${n}`, category: `Private · ${min} min`, name: `Private ${min}-Minute · ${n} Session${n > 1 ? 's' : ''}`, sessions: n, price }));
