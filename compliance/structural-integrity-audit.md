@@ -6,8 +6,8 @@
 - **Art:** Repository search for 'policy' or 'privacy'.
 
 ## 42. Novice: Multi-user isolation?
-- **Result:** FAIL (Demo Mode).
-- **Reason:** Current GoldMine Demo uses shared `localStorage`. Any user on the same browser sees all data.
+- **Result:** PARTIAL (Client Demo Boundary).
+- **Reason:** Client-side storage is partitioned by User ID (`goldmine-state-[userId]`), but in-browser execution lacks a cryptographic credential authority. Any user with DevTools can change `sessionStorage['gm_active_user']`. Server-side authentication required for true tenant isolation.
 - **Art:** `apps/goldmine-demo/src/services.ts`.
 
 ## 43. Intermediate: 98.6% Orphan Rate?
