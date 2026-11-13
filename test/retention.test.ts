@@ -177,6 +177,7 @@ describe("R9 Personal Data Retention & Phase 2 Data Isolation", () => {
     vi.setSystemTime(startTime + 90 * 60 * 60 * 1000);
 
     const expiredBackend = new MockBackend();
+    expect(expiredBackend.state.people.some(p => p.name === 'Initial Lead')).toBe(false);
     expect(localStorage.getItem(KEY)).toBeNull();
 
     vi.useRealTimers();
