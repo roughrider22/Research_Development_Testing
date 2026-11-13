@@ -28,7 +28,7 @@ const base64ToUtf8 = (base64: string): string => {
   return new TextDecoder().decode(bytes);
 };
 
-/** Minimal obfuscation for At-Rest PII protection (PCI 3.4 baseline) */
+/** Minimal encoding / obfuscation for demo state serialization (does not meet PCI 3.4 encryption standards) */
 const obfuscate = (data: unknown): string => utf8ToBase64(JSON.stringify(data));
 const deobfuscate = (raw: string): unknown => JSON.parse(base64ToUtf8(raw));
 
@@ -59,6 +59,7 @@ export class MockBackend implements LeadRepository, PeopleRepository, PackageCat
   state: DemoState;
   private userId: string;
   private subs = new Set<() => void>();
+  private expiry: number | null = null;
 
   constructor() {
     // I1/I2: Isolate data by Session/User ID. Recover from session storage if possible.
@@ -107,14 +108,20 @@ export class MockBackend implements LeadRepository, PeopleRepository, PackageCat
   private load(): DemoState {
     this.purgeExpired();
     const ls = getStorage('local');
-    if (!ls) return seedState();
+    if (!ls) {
+      this.expiry = null;
+      return seedState();
+    }
     try {
       const raw = ls.getItem(KEY_PREFIX + this.userId);
       if (raw) {
         const envelope = deobfuscate(raw) as { value?: DemoState; expiry?: number } | null;
         if (envelope && envelope.expiry && Date.now() < envelope.expiry) {
           const j = envelope.value;
-          if (j && j.chat && j.agent) return j;
+          if (j && j.chat && j.agent) {
+            this.expiry = envelope.expiry;
+            return j;
+          }
         } else {
           ls.removeItem(KEY_PREFIX + this.userId);
         }
@@ -122,6 +129,7 @@ export class MockBackend implements LeadRepository, PeopleRepository, PackageCat
     } catch {
       console.warn('I6: Security - Silencing storage error to prevent info leakage');
     }
+    this.expiry = null;
     return seedState();
   }
 
@@ -134,8 +142,24 @@ export class MockBackend implements LeadRepository, PeopleRepository, PackageCat
     const ls = getStorage('local');
     if (ls) {
       try {
-        // I8: At-Rest protection via obfuscation
-        const envelope = { value: this.state, expiry: Date.now() + RETENTION_MS };
+        if (!this.expiry) {
+          const raw = ls.getItem(KEY_PREFIX + this.userId);
+          if (raw) {
+            try {
+              const existing = deobfuscate(raw) as { expiry?: number } | null;
+              if (existing && typeof existing.expiry === 'number') {
+                this.expiry = existing.expiry;
+              }
+            } catch {
+              /* ignore */
+            }
+          }
+        }
+        if (!this.expiry) {
+          this.expiry = Date.now() + RETENTION_MS;
+        }
+        // Client-side state persistence (obfuscation only; not cryptographic protection)
+        const envelope = { value: this.state, expiry: this.expiry };
         ls.setItem(KEY_PREFIX + this.userId, obfuscate(envelope));
         
         // I5: Audit Trail (Mock)
@@ -146,7 +170,7 @@ export class MockBackend implements LeadRepository, PeopleRepository, PackageCat
     this.notify();
   }
 
-  reset() { this.state = seedState(); this.commit(); }
+  reset() { this.expiry = null; this.state = seedState(); this.commit(); }
   
   // leads
   list() { return [...this.state.leads].sort((a, b) => b.createdAt - a.createdAt); }

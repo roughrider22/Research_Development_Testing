@@ -118,4 +118,30 @@ describe("R9 Personal Data Retention & Phase 2 Data Isolation", () => {
 
     vi.useRealTimers();
   });
+
+  it("should not reset expiry window on subsequent commits (no indefinite retention)", () => {
+    const backend = new MockBackend();
+    backend.create({ name: 'Hot Lead', athlete: 'self', sport: 'test', phone: '123', email: 'a@b.com' }, 'web', 'msg1');
+    backend.commit();
+
+    // Advance 40 hours
+    vi.useFakeTimers();
+    const startTime = Date.now();
+    vi.setSystemTime(startTime + 40 * 60 * 60 * 1000);
+
+    // Modify state at 40h mark and commit
+    const activeBackend = new MockBackend();
+    activeBackend.create({ name: 'Hot Lead 2', athlete: 'self', sport: 'test', phone: '456', email: 'c@d.com' }, 'web', 'msg2');
+    activeBackend.commit();
+
+    // Advance to 49 hours from start (only 9 hours after second commit)
+    vi.setSystemTime(startTime + 49 * 60 * 60 * 1000);
+
+    // After 49 hours from original creation, data should expire (not postponed by commit at 40h)
+    const laterBackend = new MockBackend();
+    expect(laterBackend.state.leads.some(l => l.name === 'Hot Lead')).toBe(false);
+    expect(localStorage.getItem(KEY)).toBeNull();
+
+    vi.useRealTimers();
+  });
 });
