@@ -139,7 +139,8 @@ describe("R9 Personal Data Retention & Phase 2 Data Isolation", () => {
 
     // After 49 hours from original creation, data should expire (not postponed by commit at 40h)
     const laterBackend = new MockBackend();
-    expect(laterBackend.state.leads.some(l => l.name === 'Hot Lead')).toBe(false);
+    expect(laterBackend.state.people.some(p => p.name === 'Hot Lead')).toBe(false);
+    expect(laterBackend.state.leads.some(l => l.firstMessage === 'msg1')).toBe(false);
     expect(localStorage.getItem(KEY)).toBeNull();
 
     vi.useRealTimers();
