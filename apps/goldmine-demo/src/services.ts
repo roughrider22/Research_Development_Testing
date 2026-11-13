@@ -143,19 +143,6 @@ export class MockBackend implements LeadRepository, PeopleRepository, PackageCat
     if (ls) {
       try {
         if (!this.expiry) {
-          const raw = ls.getItem(KEY_PREFIX + this.userId);
-          if (raw) {
-            try {
-              const existing = deobfuscate(raw) as { expiry?: number } | null;
-              if (existing && typeof existing.expiry === 'number') {
-                this.expiry = existing.expiry;
-              }
-            } catch {
-              /* ignore */
-            }
-          }
-        }
-        if (!this.expiry) {
           this.expiry = Date.now() + RETENTION_MS;
         }
         // Client-side state persistence (obfuscation only; not cryptographic protection)
@@ -170,7 +157,7 @@ export class MockBackend implements LeadRepository, PeopleRepository, PackageCat
     this.notify();
   }
 
-  reset() { this.expiry = null; this.state = seedState(); this.commit(); }
+  reset() { this.expiry = Date.now() + RETENTION_MS; this.state = seedState(); this.commit(); }
   
   // leads
   list() { return [...this.state.leads].sort((a, b) => b.createdAt - a.createdAt); }
