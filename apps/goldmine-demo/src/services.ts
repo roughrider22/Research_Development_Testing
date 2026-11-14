@@ -1,6 +1,6 @@
 // Service interfaces (COA 2 shape). Mocks below; a real backend swaps these out later.
-import type { Booking, Channel, DemoState, Lead, Message, Package, Person, Sale } from './types';
-import { PACKAGES, seedState } from './data';
+import type { Booking, Channel, DemoState, Lead, Message, Package, Person, Sale } from './types.js';
+import { PACKAGES, seedState } from './data.js';
 
 export interface LeadRepository { list(): Lead[]; get(id: string): Lead | undefined; create(p: Omit<Person, 'id'>, channel: Channel, text: string): Lead; setStage(id: string, s: Lead['stage']): void; markRead(id: string): void }
 export interface PeopleRepository { person(id: string): Person | undefined; people(): Person[] }
@@ -10,29 +10,171 @@ export interface BookingService { openSlots(): number[]; book(personId: string, 
 /** Mock today; later: Mindbody Public API (clients, sales, appointments). */
 export interface MindbodyAdapter { recordSale(personId: string, packageId: string): Sale; useSessions(saleId: string, n: number): void; activeSales(): Sale[] }
 
-const KEY = 'goldmine-demo-state-v2';
+export const KEY_PREFIX = 'goldmine-state-';
+export const KEY = KEY_PREFIX + 'guest';
+const RETENTION_MS = 48 * 60 * 60 * 1000; // R9 Requirement: No Personal Data kept past 48 hours
 const uid = () => Math.random().toString(36).slice(2, 9);
+
+/** UTF-8 safe Base64 encoding/decoding */
+const utf8ToBase64 = (str: string): string => {
+  const bytes = new TextEncoder().encode(str);
+  const binString = Array.from(bytes, (byte) => String.fromCharCode(byte)).join('');
+  return btoa(binString);
+};
+
+const base64ToUtf8 = (base64: string): string => {
+  const binString = atob(base64);
+  const bytes = Uint8Array.from(binString, (m) => m.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+};
+
+/** Minimal encoding / obfuscation for demo state serialization (does not meet PCI 3.4 encryption standards) */
+const obfuscate = (data: unknown): string => utf8ToBase64(JSON.stringify(data));
+const deobfuscate = (raw: string): unknown => JSON.parse(base64ToUtf8(raw));
+
+/** Simple XSS Sanitization (NIST SI-10) */
+const sanitize = (text: string): string =>
+  text.replace(/[&<>"']/g, (m) => {
+    switch (m) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#x27;';
+      default: return m;
+    }
+  });
+
+const getStorage = (type: 'local' | 'session'): Storage | null => {
+  try {
+    if (type === 'session' && typeof sessionStorage !== 'undefined') return sessionStorage;
+    if (type === 'local' && typeof localStorage !== 'undefined') return localStorage;
+  } catch {
+    /* storage disabled/blocked */
+  }
+  return null;
+};
 
 export class MockBackend implements LeadRepository, PeopleRepository, PackageCatalog, MessagingService, BookingService, MindbodyAdapter {
   state: DemoState;
+  private userId: string;
   private subs = new Set<() => void>();
+  private expiry: number | null = null;
+
   constructor() {
-    let s: DemoState | null = null;
-    try { const raw = localStorage.getItem(KEY); if (raw) { const j = JSON.parse(raw); if (j && j.chat && j.agent) s = j; } } catch { /* file:// may block storage */ }
-    this.state = s ?? seedState();
+    // I1/I2: Isolate data by Session/User ID. Recover from session storage if possible.
+    this.userId = getStorage('session')?.getItem('gm_active_user') || 'guest';
+    this.state = this.load();
   }
+
+  get activeUser() { return this.userId; }
+
+  login(id: string) {
+    this.userId = sanitize(id) || 'guest';
+    getStorage('session')?.setItem('gm_active_user', this.userId);
+    this.state = this.load();
+    this.notify();
+  }
+
+  private purgeExpired(): void {
+    const ls = getStorage('local');
+    if (!ls) return;
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < ls.length; i++) {
+        const k = ls.key(i);
+        if (k && k.startsWith(KEY_PREFIX)) {
+          const raw = ls.getItem(k);
+          if (raw) {
+            try {
+              const envelope = deobfuscate(raw) as { expiry?: number } | null;
+              if (envelope && envelope.expiry && Date.now() >= envelope.expiry) {
+                keysToRemove.push(k);
+              }
+            } catch {
+              /* ignore corrupted */
+            }
+          }
+        }
+      }
+      for (const k of keysToRemove) {
+        ls.removeItem(k);
+      }
+    } catch {
+      /* storage blocked */
+    }
+  }
+
+  private load(): DemoState {
+    this.purgeExpired();
+    const ls = getStorage('local');
+    if (!ls) {
+      this.expiry = null;
+      return seedState();
+    }
+    try {
+      const raw = ls.getItem(KEY_PREFIX + this.userId);
+      if (raw) {
+        const envelope = deobfuscate(raw) as { value?: DemoState; expiry?: number } | null;
+        if (envelope && envelope.expiry && Date.now() < envelope.expiry) {
+          const j = envelope.value;
+          if (j && j.chat && j.agent) {
+            this.expiry = envelope.expiry;
+            return j;
+          }
+        } else {
+          ls.removeItem(KEY_PREFIX + this.userId);
+        }
+      }
+    } catch {
+      console.warn('I6: Security - Silencing storage error to prevent info leakage');
+    }
+    this.expiry = null;
+    return seedState();
+  }
+
   subscribe(f: () => void) { this.subs.add(f); return () => { this.subs.delete(f); }; }
-  commit() { this.state = { ...this.state }; try { localStorage.setItem(KEY, JSON.stringify(this.state)); } catch { /* ignore */ } this.subs.forEach((f) => f()); }
-  reset() { this.state = seedState(); this.commit(); }
+  
+  private notify() { this.subs.forEach((f) => f()); }
+
+  commit() {
+    this.state = { ...this.state };
+    const ls = getStorage('local');
+    if (ls) {
+      try {
+        if (!this.expiry) {
+          this.expiry = Date.now() + RETENTION_MS;
+        }
+        // Client-side state persistence (obfuscation only; not cryptographic protection)
+        const envelope = { value: this.state, expiry: this.expiry };
+        ls.setItem(KEY_PREFIX + this.userId, obfuscate(envelope));
+        
+        // I5: Audit Trail (Mock)
+        const auditLog = `[AUDIT] User ${this.userId} modified state at ${new Date().toISOString()}`;
+        console.info(auditLog); // In real production, this goes to a secure log-server
+      } catch { /* ignore */ }
+    }
+    this.notify();
+  }
+
+  reset() { this.expiry = Date.now() + RETENTION_MS; this.state = seedState(); this.commit(); }
+  
   // leads
   list() { return [...this.state.leads].sort((a, b) => b.createdAt - a.createdAt); }
   get(id: string) { return this.state.leads.find((l) => l.id === id); }
   create(p: Omit<Person, 'id'>, channel: Channel, text: string) {
-    const person = { ...p, id: 'p' + uid() };
-    const lead: Lead = { id: 'l' + uid(), personId: person.id, channel, stage: 'new', createdAt: Date.now(), firstMessage: text, unread: true };
+    const person = { 
+      name: sanitize(p.name),
+      phone: sanitize(p.phone),
+      email: sanitize(p.email),
+      athlete: p.athlete ? sanitize(p.athlete) : undefined,
+      sport: p.sport ? sanitize(p.sport) : undefined,
+      id: 'p' + uid() 
+    };
+    const lead: Lead = { id: 'l' + uid(), personId: person.id, channel, stage: 'new', createdAt: Date.now(), firstMessage: sanitize(text), unread: true };
     this.state.people = [...this.state.people, person];
     this.state.leads = [...this.state.leads, lead];
-    this.state.messages = [...this.state.messages, { id: 'm' + uid(), personId: person.id, dir: 'in', channel, body: text, at: Date.now() }];
+    this.state.messages = [...this.state.messages, { id: 'm' + uid(), personId: person.id, dir: 'in', channel, body: sanitize(text), at: Date.now() }];
     this.commit();
     return lead;
   }
@@ -45,7 +187,7 @@ export class MockBackend implements LeadRepository, PeopleRepository, PackageCat
   pkg(id: string) { return PACKAGES.find((p) => p.id === id); }
   // messaging (never leaves the browser)
   send(personId: string, channel: Message['channel'], body: string, auto?: string) {
-    const m: Message = { id: 'm' + uid(), personId, dir: 'out', channel, body, at: Date.now(), simulated: true, auto };
+    const m: Message = { id: 'm' + uid(), personId, dir: 'out', channel, body: sanitize(body), at: Date.now(), simulated: true, auto };
     this.state.messages = [...this.state.messages, m];
     this.commit();
     return m;

@@ -66,7 +66,7 @@ export function chatInput(text: string, act?: string, msgId?: string) {
   const msgs = c.msgs.map((m) => (m.chips && !m.used ? { ...m, used: true } : m));
   backend.state.chat = { ...c, msgs: [...msgs, mk({ text: text.slice(0, 280) }, 'user')] }; backend.commit();
   const it = intent(text);
-  let a = act ?? (backend.state.chat.mode === 'name' && ['fallback', 'hello', 'book'].includes(it) ? 'name:' + text.trim().slice(0, 40) : it);
+  const a = act ?? (backend.state.chat.mode === 'name' && ['fallback', 'hello', 'book'].includes(it) ? 'name:' + text.trim().slice(0, 40) : it);
   if (!act && a !== 'book' && !a.startsWith('name:') && backend.state.chat.mode === 'name') { backend.state.chat = { ...backend.state.chat, mode: 'idle' }; backend.commit(); }
   if (a.startsWith('name:')) {
     const name = a.slice(5).replace(/^i'?m\s+|^my name is\s+|^this is\s+/i, '').trim() || 'Website visitor';
